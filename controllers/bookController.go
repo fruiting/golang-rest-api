@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"go-rest/logger"
 	"go-rest/models"
 	"net/http"
 	"strconv"
@@ -16,7 +17,7 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 			"JOIN book_author ON books.id = book_author.book_id JOIN authors ON book_author.author_id = authors.id",
 	)
 	if err != nil {
-		panic(err.Error())
+		logger.Error(err.Error())
 	}
 
 	var books []models.Book
@@ -26,7 +27,7 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 
 		err = results.Scan(&book.ID, &book.Isbn, &book.Title, &author.Firstname, &author.Lastname)
 		if err != nil {
-			panic(err.Error())
+			logger.Error(err.Error())
 		}
 
 		book.Author = author
@@ -48,7 +49,7 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 			"WHERE books.id = " + params["id"],
 	)
 	if error != nil {
-		panic(error.Error())
+		logger.Error(error.Error())
 	}
 
 	var book models.Book
@@ -57,7 +58,7 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	result.Next()
 	error = result.Scan(&book.ID, &book.Isbn, &book.Title, &author.Firstname, &author.Lastname)
 	if error != nil {
-		panic(error.Error())
+		logger.Error(error.Error())
 	}
 
 	book.Author = author
@@ -85,8 +86,10 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 			"VALUES (" + strconv.FormatInt(bookID, 10) + ", " + strconv.FormatInt(authorID, 10) + ");",
 	)
 	_, error := models.GetDatabase().Query("COMMIT;")
-	if error != nil {
-		panic(error.Error())
+	if error == nil {
+		logger.Info("Created a book id: " + strconv.FormatInt(bookID, 10))
+	} else {
+		logger.Error(error.Error())
 	}
 
 	w.WriteHeader(200)
@@ -114,8 +117,10 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 			"WHERE books.id = " + params["id"] + ";",
 	)
 	_, error := models.GetDatabase().Query("COMMIT;")
-	if error != nil {
-		panic(error.Error())
+	if error == nil {
+		logger.Info("Updated a book id: " + params["id"])
+	} else {
+		logger.Error(error.Error())
 	}
 
 	w.WriteHeader(200)
@@ -127,8 +132,10 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	_, error := models.GetDatabase().Query("DELETE FROM books WHERE id = ?", params["id"])
-	if error != nil {
-		panic(error.Error())
+	if error == nil {
+		logger.Info("Deleted a book id: " + params["id"])
+	} else {
+		logger.Error(error.Error())
 	}
 
 	w.WriteHeader(200)
