@@ -1,3 +1,3 @@
-Simple rest api project on go language for trainig<br>
+Simple rest api project on go language for trainig
 
-Clone, run go build, run binary
+Clone, create .env, run go build, run binary
